@@ -8,7 +8,7 @@ from sklearn.neighbors import KNeighborsClassifier
 
 def teach(indexes):
     X = df.values[:, indexes]
-    X_train, test_X, y_train, test_Y = train_test_split(X, Y, test_size=0.2, random_state=11)
+    X_train, test_X, y_train, test_Y = train_test_split(X, Y, test_size=0.2)
     knn = KNeighborsClassifier()
     knn.fit(X_train, y_train)
 
@@ -21,8 +21,17 @@ def teach(indexes):
     for i in range(n):
         if result[i] == test_Y[i]:
             good += 1
-    #print(good / n)
-    return good/n
+    print(good / n)
+    test_result = good / n
+
+    result = knn.predict(X_train)
+    good = 0
+    n = len(y_train)
+    for i in range(n):
+        if result[i] == y_train[i]:
+            good += 1
+    print(good / n)
+    return test_result
 
 file_name = "features_train.csv"
 with open(file_name,'r') as f:
@@ -49,6 +58,6 @@ for i in indexes:
     if toch > max:
         print(toch, i)
         max = toch
-    break
 
+# the best features (1, 3, 7, 8, 9, 10, 11, 19)
 
