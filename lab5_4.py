@@ -169,26 +169,6 @@ def get_features(coin, S,perimeter,mdl, rmax, rmin) -> dict:
     features["KO"] = rmax/rmin
     return features
 
-def image_features(image_path):
-    #print(image_path, "!")
-    image = cv2.imread(image_path)
-    start_pixels = image.tolist()
-    sum_ = 0
-    n= 0
-    for j in start_pixels:
-        for i in j:
-            if i == [0,0,0]:
-                continue
-            sum_ += sum(i)/3
-            n+=1
-    #print(sum_/n)
-
-    new_image, s, p, mdl, rmax, rmin = cut_coin(image.copy(), round(sum_/n/2)+30)
-
-    features = get_features(new_image, s, p, mdl, rmax, rmin)
-    features.update({"path": image_path})
-    return features
-
 def image_features2(image_path, name = None, por = 30):
     #print(image_path, "!")
     image = cv2.imread(image_path)
