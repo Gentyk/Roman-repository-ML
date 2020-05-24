@@ -1,5 +1,5 @@
 import math
-import random
+
 import cv2
 import pandas
 
@@ -32,7 +32,6 @@ def cut_coin(image, grad = 50):
 def get_coin_params(image):
     # добавим вычисление площади, периметр
     image_grey = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    ret, thresh = cv2.threshold(image_grey,0,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
     contours, hierarchy = cv2.findContours(image_grey, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_KCOS)
     cv2.drawContours(image, contours, -1, (255, 0, 0), 1, cv2.LINE_AA, hierarchy, 1)
     for i, cnt in enumerate(contours):
@@ -73,17 +72,14 @@ def get_coin_params(image):
     return S, perimeter, mdl, rmax, rmin
 
 
-
 def d(x1,y1,x2,y2):
     return math.sqrt((x1-x2)**2+(y1-y2)**2)
-
-
 
 
 def create_matrix(image):
     max_x, max_y = len(image), len(image[0])
     # создадим матрицу яркостей для каждого пикселя. черный фон - пометим -1
-    brightness = [[-1 for _ in range(max_y)] for i in range(max_y)]
+    brightness = [[-1 for _ in range(max_y)] for i in range(max_x)]
     for i in range(max_x):
         for j in range(max_y):
             if image[i][j] == [0,0,0]:
@@ -219,11 +215,11 @@ def image_features2(image_path, name = None, por = 30):
 
 if __name__ == "__main__":
     images = [
-        "./br-coins/classification_dataset/all/5_1477145436.jpg",
-        "./br-coins/classification_dataset/all/10_1477288182.jpg",
-        "./br-coins/classification_dataset/all/25_1477286388.jpg",
-       "./br-coins/classification_dataset/all/50_1477145148.jpg",
-        "./br-coins/classification_dataset/all/100_1477279626.jpg"
+       #  "./br-coins/classification_dataset/all/5_1477145436.jpg",
+       #  "./br-coins/classification_dataset/all/10_1477288182.jpg",
+       #  "./br-coins/classification_dataset/all/25_1477286388.jpg",
+       # "./br-coins/classification_dataset/all/50_1477145148.jpg",
+        "./br-coins/classification_dataset/all/100_1477154472.jpg"
     ]
     d = [image_features2(image_path) for image_path in images]
     df = pandas.DataFrame(d)
