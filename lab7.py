@@ -1,7 +1,10 @@
-import pandas as pd
-import numpy as np
-from numpy import linalg
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from numpy import linalg
+from sklearn.model_selection import train_test_split
+# from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
 
 
 def get_eigenvalues(table):
@@ -32,7 +35,65 @@ def E(eigenvalues_):
     x = [i for i in range(len(eigenvalues))]
     y = [(sum(eigenvalues[i:])/sum(eigenvalues)) for i in x]
     plt.plot(x, y)
+    # примечание  - график показывает, что все признаки являются эффективными
+    # см http://www.machinelearning.ru/wiki/images/archive/a/a2/20150509140209%21Voron-ML-regression-slides.pdf
+    # слайд 21 из 23
 
+def ML_preprocessing(df_):
+    '''Возвращает список интересующих столбцов. Фактически пытается сделать feature selection, хотя не думаю, что вэтом есть смысл'''
+    # принцип выделения наиболе информативных признаков выделент тут
+    # https://towardsdatascience.com/feature-selection-and-dimensionality-reduction-f488d1a035de
+    df = df_.copy()
+    df = df.drop(['Y'], axis='columns')
+
+    # Удалить сильно коррелированные столбцы(более чем 0.6)
+    columns = df.columns
+    exclude_columns = []
+    interest_columns = []
+    corr_matrix = df.corr().abs()
+    for column in columns:
+        if column in exclude_columns:
+            continue
+        interest_columns.append(column)
+        series = corr_matrix[column]
+        names = [name for name in series.index if name not in exclude_columns and name not in interest_columns and name != column]
+        for name in names:
+            if series[name] > 0.5:
+                exclude_columns.append(name)
+    print(len(interest_columns))
+    return list(set(interest_columns)), list(set(exclude_columns))
+
+
+def runSVC(X_, Y_):
+    # получение точности при обучении методом опорных векторов
+    X = X_.values
+    Y = Y_.values
+    X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.3)
+    knn = SVC()
+    knn.fit(X_train, y_train)
+    result = knn.predict(X_test)
+
+    # проверка результатов
+    n = len(y_test)
+    good = 0
+    for i in range(n):
+        if result[i] == y_test[i]:
+            good += 1
+    print("Точность:", good / n)
+
+
+def runML(df_, columns: list):
+    '''Все что связанно с машинным обучением'''
+
+    # сначала отработаем на всех столбцах
+    df = df_.copy()
+    Y = df['Y']
+    X = df.drop(['Y'], axis='columns')
+    runSVC(X,Y)
+
+    # потом возьмем ограниченное количество столбов, выделенное с помощью feature selection
+    new_x = X[columns]
+    runSVC(new_x,Y)
 
 def lab7(df_):
     # отрежем имена в первом столбце
@@ -42,7 +103,6 @@ def lab7(df_):
     eigenvalues = get_eigenvalues(table)
     print(type(eigenvalues[0]))
     E(eigenvalues)
-    plt.show()
 
 def main():
     names = ["B", "Limfoma", "Norma", "T"]
@@ -60,13 +120,15 @@ def main():
         new_df = new_df.replace(to_replace =',', value = '.', regex = True)
         for col_name in new_df.columns:
             new_df[col_name] = new_df[col_name].astype(float)
-        print(new_df.dtypes)
+        #print(new_df.dtypes)
 
         new_df["Y"] = i
         dfs.append(new_df)
     df = pd.concat(dfs)
     lab7(df)
-
+    columns, _ = ML_preprocessing(df)
+    runML(df, columns)
+    plt.show()
 
 
 if __name__ == "__main__":
