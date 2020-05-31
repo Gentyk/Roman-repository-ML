@@ -23,6 +23,10 @@ def get_eigenvalues(table):
 
 
 def E(eigenvalues_):
+    ''' строит график E(m)
+
+    :param eigenvalues_: массив собственных значений матрицы
+    '''
     eigenvalues = eigenvalues_.copy()
     eigenvalues.sort()
     x = [i for i in range(len(eigenvalues))]
@@ -30,28 +34,39 @@ def E(eigenvalues_):
     plt.plot(x, y)
 
 
-def lab7(df):
+def lab7(df_):
     # отрежем имена в первом столбце
-    table = df.to_numpy()[:, 1:]
+    df = df_.copy()
+    df = df.drop(['Y'], axis='columns')
+    table = df.to_numpy()
     eigenvalues = get_eigenvalues(table)
     print(type(eigenvalues[0]))
     E(eigenvalues)
     plt.show()
-    # print(G)
-    # a = 20
-    # print(a)
 
 def main():
     names = ["B", "Limfoma", "Norma", "T"]
-    df = None
+    dfs = []
     for i in names:
+        print(i)
         new_df = pd.read_csv(f"./blasts/{i}.csv", sep=";")
+
+        # для последующего мержа датафреймов - отредактируем столбики
         new_df = new_df.drop(new_df.columns[[0]], axis='columns')
+        new_names = {name: name.strip() for name in new_df.columns}
+        new_df.rename(columns=new_names, inplace=True)
+
+        # приведем все столбики к типу float
+        new_df = new_df.replace(to_replace =',', value = '.', regex = True)
+        for col_name in new_df.columns:
+            new_df[col_name] = new_df[col_name].astype(float)
+        print(new_df.dtypes)
+
         new_df["Y"] = i
-        if df is None:
-            df = new_df.copy()
-        else:
-            df.merge(new_df.copy())
+        dfs.append(new_df)
+    df = pd.concat(dfs)
+    lab7(df)
+
 
 
 if __name__ == "__main__":
