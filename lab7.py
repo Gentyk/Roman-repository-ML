@@ -5,6 +5,7 @@ from numpy import linalg
 from sklearn.model_selection import train_test_split
 # from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
+from sklearn.preprocessing import StandardScaler
 
 
 def get_eigenvalues(table):
@@ -66,9 +67,7 @@ def ML_preprocessing(df_):
 
 def runSVC(X_, Y_):
     # получение точности при обучении методом опорных векторов
-    X = X_.values
-    Y = Y_.values
-    X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.3)
+    X_train, X_test, y_train, y_test = train_test_split(X_, Y_, test_size=0.3)
     knn = SVC()
     knn.fit(X_train, y_train)
     result = knn.predict(X_test)
@@ -88,11 +87,18 @@ def runML(df_, columns: list):
     # сначала отработаем на всех столбцах
     df = df_.copy()
     Y = df['Y']
-    X = df.drop(['Y'], axis='columns')
+    X_ = df.drop(['Y'], axis='columns')
+    X = X_.values
+    Y = Y.values
+    # добавили нормальзацию
+    scaler = StandardScaler()
+    X = scaler.fit_transform(X)
     runSVC(X,Y)
 
     # потом возьмем ограниченное количество столбов, выделенное с помощью feature selection
-    new_x = X[columns]
+    new_x = X_[columns]
+    new_x = new_x.values
+    new_x = scaler.fit_transform(new_x)
     runSVC(new_x,Y)
 
 def lab7(df_):
